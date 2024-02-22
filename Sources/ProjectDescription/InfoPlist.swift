@@ -18,6 +18,30 @@ public enum InfoPlist: Codable, Equatable {
     public static var `default`: InfoPlist {
         .extendingDefault(with: [:])
     }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let path = try? container.decode(Path.self) {
+            self = .file(path: path)
+        } else {
+            let value = try container.decode([String: Plist.Value].self)
+            if let extendedValue = value["extendingDefault"],
+               case let .dictionary(dictionary) = extendedValue {
+                self = .extendingDefault(with: dictionary)
+            } else {
+                self = .dictionary(value)
+            }
+        }
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case let .file(path): try container.encode(path)
+        case let .dictionary(dictionary): try container.encode(dictionary)
+        case let .extendingDefault(dictionary): try container.encode(["extendingDefault": dictionary])
+        }
+    }
 
     // MARK: - Error
 

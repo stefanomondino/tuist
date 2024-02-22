@@ -18,6 +18,40 @@ public enum Plist {
         case dictionary([String: Value])
         /// It represents an array value.
         case array([Value])
+        
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+        
+            if let value = try? container.decode(String.self) {
+                self = .string(value)
+            } else if let value = try? container.decode(Int.self) {
+                self = .integer(value)
+            } else if let value = try? container.decode(Double.self) {
+                self = .real(value)
+            } else if let value = try? container.decode(Bool.self) {
+                self = .boolean(value)
+            } else if let value = try? container.decode([String: Value].self) {
+                self = .dictionary(value)
+            } else if let value = try? container.decode([Value].self) {
+                self = .array(value)
+            } else {
+                // Should never happen
+                throw DecodingError.valueNotFound(Value.self, .init(codingPath: [],
+                                                                    debugDescription: "Unable to decode"))
+            }
+        }
+        
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            switch self {
+            case let .string(value): try container.encode(value)
+            case let .integer(value): try container.encode(value)
+            case let .real(value): try container.encode(value)
+            case let .boolean(value): try container.encode(value)
+            case let .dictionary(value): try container.encode(value)
+            case let .array(value): try container.encode(value)
+            }
+        }
     }
 }
 

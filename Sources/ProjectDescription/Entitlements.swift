@@ -14,6 +14,23 @@ public enum Entitlements: Codable, Equatable {
     public enum CodingError: Error {
         case invalidType(String)
     }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let path = try? container.decode(Path.self) {
+            self = .file(path: path)
+        } else {
+            self = try .dictionary(container.decode([String: Plist.Value].self))
+        }
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case let .file(path): try container.encode(path)
+        case let .dictionary(dictionary): try container.encode(dictionary)
+        }
+    }
 
     // MARK: - Internal
 
